@@ -23,43 +23,69 @@ def process_image(image):
 
     return processed_image
 
+# Custom CSS styles
+st.markdown(
+    """
+    <style>
+    /* Hide default Streamlit footer */
+    .viewerFooter {
+        display: none;
+    }
+
+    /* Position the title */
+    .css-18ni7ap {
+        position: sticky;
+        top: 0;
+        z-index: 999;
+    }
+
+    /* Hide Streamlit toolbar */
+    [data-testid="stToolbar"] {
+        display: none;
+    }
+
+    /* Set default caption width */
+    [data-testid="caption"] {
+        width: 300px;
+    }
+
+    /* Set default image width */
+    img {
+        max-width: 300px;
+        display: block;
+        margin: 0 auto;
+    }
+
+    /* Change sidebar background color */
+    .sidebar .sidebar-content {
+        background-color: #8a7878;
+    }
+
+    /* Center-align result text */
+    .center-align {
+        text-align: center;
+    }
+
+    /* Add a fixed footer */
+    .fixed-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 10px;
+        background-color: #f5f5f5;
+        text-align: center;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Streamlit app
 def main():
-    # Custom CSS styles
-    st.markdown(
-        """
-        <style>
-        /* Set header as fixed */
-        .reportview-container .main .block-container {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        /* Hide main content */
-        .reportview-container .main .block-container:not(.custom-footer) {
-            display: none;
-        }
-
-        /* Hide sidebar */
-        .reportview-container .main .sidebar .sidebar-content {
-            display: none;
-        }
-
-        /* Custom footer */
-        .custom-footer {
-            font-size: 12px;
-            margin-top: 30px;
-            color: #808080;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
     # Header
     st.title("Tuberculosis Detection Web App")
-    st.write("Welcome to the Tuberculosis Detection web app. This app allows you to upload chest X-ray images and predicts the presence of Tuberculosis using a pre-trained deep learning model.")
+    st.write("Welcome to the Tuberculosis Detection web app. This app allows you to upload chest X-ray images and predicts the presence of Tuberculosis using a deep learning model.")
     st.write("Simply upload images in PNG, JPG, or JPEG format using the file uploader. Once the images are uploaded, the app will process each image and display the prediction results along with the confidence scores.")
 
     st.sidebar.title("Upload Images")
@@ -74,8 +100,11 @@ def main():
             image = Image.open(uploaded_file)
             processed_image = process_image(image)
 
-            # Display the uploaded image
-            st.image(image, caption='Uploaded Image', use_column_width=True, width=100)
+            # Create two columns
+            col1, col2 = st.columns([2, 1])
+
+            # Display the uploaded image in the first column
+            col1.image(image, caption='Uploaded Image', use_column_width=True, width=250)
 
             # Make predictions
             predictions = model.predict(processed_image)
@@ -86,19 +115,18 @@ def main():
             # Calculate complement of Tuberculosis percentage
             normal_percentage = 100 - (probability * 100)
 
-            # Display the result
-            st.write("Prediction:", predicted_label)
-            st.write("Tuberculosis Percentage:", round(probability * 100, 2), "%")
-            st.write("Normal Percentage:", round(normal_percentage, 2), "%")
+            # Display the result in the second column with center alignment
+            with col2:
+                st.markdown("<div class='center-align'>Prediction: {0}</div>".format(predicted_label), unsafe_allow_html=True)
+                st.markdown("<div class='center-align'>Tuberculosis Percentage: {0}%</div>".format(round(probability * 100, 2)), unsafe_allow_html=True)
+                st.markdown("<div class='center-align'>Normal Percentage: {0}%</div>".format(round(normal_percentage, 2)), unsafe_allow_html=True)
 
-    # Custom footer
+    # Fixed footer
     st.markdown(
         """
-        <footer class='custom-footer'>
-            <p>App designed by a team of data scientists from the College of Coict, UDSM.</p>
-            <p>Contact us: nkw802640@gmail.com | Phone number: +255757650442</p>
-            <p>&#169;2023. All rights reserved.</p>
-        </footer>
+        <div class="fixed-footer">
+        <p>App designed by a team of data scientists from the College of Coict, UDSM.</p>
+        </div>
         """,
         unsafe_allow_html=True
     )
