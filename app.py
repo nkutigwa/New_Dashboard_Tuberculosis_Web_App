@@ -106,9 +106,9 @@ st.markdown(
         text-align: center;
     }
  
-    .css-6qob1r {{
-        background-color: #f08db3 !important;
-    }}
+    .css-6qob1r {
+        background-color: #eeaeca !important;
+    }
 
     </style>
     """,
@@ -117,7 +117,7 @@ st.markdown(
 
 # Streamlit app
 def main():
-   # Fixed header
+    # Fixed header
     st.markdown(
         """
         <div class="fixed-header">
