@@ -49,6 +49,22 @@ st.markdown(
         width: 300px;
     }
 
+      /* Add custom CSS for the fixed header */
+    .fixed-header {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background-color: #f5f5f5;
+        padding: 10px;
+        z-index: 999;
+    }
+    .header-title {
+        font-size: 35px;
+        font-weight: bold;
+        color: #333333;
+        margin: 0;
+    }
+
     /* Set default image width */
     img {
         max-width: 300px;
@@ -83,10 +99,19 @@ st.markdown(
 
 # Streamlit app
 def main():
-    # Header
-    st.title("Tuberculosis Detection Web App")
+   # Fixed header
+    st.markdown(
+        """
+        <div class="fixed-header">
+            <h1 class="header-title">Tuberculosis Detection App</h1>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
     st.write("Welcome to the Tuberculosis Detection web app. This app allows you to upload chest X-ray images and predicts the presence of Tuberculosis using a deep learning model.")
-    st.write("Simply upload images in PNG, JPG, or JPEG format using the file uploader. Once the images are uploaded, the app will process each image and display the prediction results along with the confidence scores.")
+    st.write("Simply upload images in PNG, JPG, or JPEG format using the file uploader. Once the images are uploaded, the app will process each image and display the prediction results ")
 
     st.sidebar.title("Upload Images")
     st.sidebar.write("Upload chest X-ray images to detect the presence of Tuberculosis.")
@@ -117,7 +142,7 @@ def main():
 
             # Display the result in the second column with center alignment
             with col2:
-                st.markdown("<div class='center-align'>Prediction: {0}</div>".format(predicted_label), unsafe_allow_html=True)
+                st.markdown("<div class='center-align'>Prediction Results:</div>", unsafe_allow_html=True)
                 st.markdown("<div class='center-align'>Tuberculosis Percentage: {0}%</div>".format(round(probability * 100, 2)), unsafe_allow_html=True)
                 st.markdown("<div class='center-align'>Normal Percentage: {0}%</div>".format(round(normal_percentage, 2)), unsafe_allow_html=True)
 
