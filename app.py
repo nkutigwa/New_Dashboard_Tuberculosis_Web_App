@@ -5,6 +5,7 @@ from tensorflow.keras.applications.resnet50 import ResNet50
 from tensorflow.keras.preprocessing import image
 from PIL import Image
 import numpy as np
+import streamlit.components.v1 as components
 
 # Set page config
 st.set_page_config(page_title="Tuberculosis Detection Web App", layout="wide")
@@ -68,7 +69,7 @@ st.markdown(
 
     /* Set default image width */
     img {
-        max-width: 400px;
+        max-width: 300px;
         display: block;
         margin: 0 auto;
     }
@@ -107,7 +108,25 @@ st.markdown(
     }
  
     .css-6qob1r {
-        background-color: #eeaeca !important;
+        background-color: #f5f5f5 !important;
+    }
+
+    /* Dropzone styles */
+    .dropzone {
+        border: 2px dashed #f08db3;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        background-color: #f5f5f5;
+        cursor: pointer;
+    }
+    .dropzone:hover {
+        background-color: #fce0ed;
+    }
+    .dropzone .dz-message {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333333;
     }
 
     </style>
@@ -128,13 +147,18 @@ def main():
     )
 
     st.write("Welcome to the Tuberculosis Detection web app. This app allows you to upload chest X-ray images and predicts the presence of Tuberculosis using a deep learning model.")
-    st.write("Simply upload images in PNG, JPG, or JPEG format using the file uploader. Once the images are uploaded, the app will process each image and display the prediction results")
+    st.write("Simply drag and drop or click to upload images in PNG, JPG, or JPEG format. Once the images are uploaded, the app will process each image and display the prediction results.")
 
     st.sidebar.markdown("<div class='custom-title'>Upload Images</div>", unsafe_allow_html=True)
     st.sidebar.write("Upload chest X-ray images to detect the presence of Tuberculosis.")
 
-    # Display file uploader in the sidebar
-    uploaded_files = st.sidebar.file_uploader("Choose images", type=["png", "jpg", "jpeg"], accept_multiple_files=True)
+    # Display dropzone file uploader in the sidebar
+    uploaded_files = st.sidebar.file_uploader(
+        " ",
+        type=["png", "jpg", "jpeg"],
+        accept_multiple_files=True,
+        key="fileUploader",
+    )
 
     if uploaded_files:
         for uploaded_file in uploaded_files:
@@ -172,6 +196,7 @@ def main():
         """,
         unsafe_allow_html=True
     )
+
 
 if __name__ == '__main__':
     main()
