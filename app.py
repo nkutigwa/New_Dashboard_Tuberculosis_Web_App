@@ -49,7 +49,7 @@ st.markdown(
         width: 300px;
     }
 
-      /* Add custom CSS for the fixed header */
+    /* Add custom CSS for the fixed header */
     .fixed-header {
         position: fixed;
         top: 0;
@@ -63,18 +63,19 @@ st.markdown(
         font-weight: bold;
         color: #333333;
         margin: 0;
+        font-family: "Arial", sans-serif; /* Custom font */
     }
 
     /* Set default image width */
     img {
-        max-width: 300px;
+        max-width: 400px;
         display: block;
         margin: 0 auto;
     }
 
     /* Change sidebar background color */
     .sidebar .sidebar-content {
-        background-color: #8a7878;
+        background-color: #f08db3;
     }
 
     /* Center-align result text */
@@ -92,6 +93,23 @@ st.markdown(
         background-color: #f5f5f5;
         text-align: center;
     }
+
+    /* Customize the title style */
+    .custom-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #FFFFFF;
+        background-color: #FF3366; /* Custom background color */
+        padding: 10px;
+        margin-bottom: 10px;
+        font-family: "Verdana", sans-serif; /* Custom font */
+        text-align: center;
+    }
+ 
+    .css-6qob1r {{
+        background-color: #f08db3 !important;
+    }}
+
     </style>
     """,
     unsafe_allow_html=True
@@ -109,11 +127,10 @@ def main():
         unsafe_allow_html=True
     )
 
-
     st.write("Welcome to the Tuberculosis Detection web app. This app allows you to upload chest X-ray images and predicts the presence of Tuberculosis using a deep learning model.")
-    st.write("Simply upload images in PNG, JPG, or JPEG format using the file uploader. Once the images are uploaded, the app will process each image and display the prediction results ")
+    st.write("Simply upload images in PNG, JPG, or JPEG format using the file uploader. Once the images are uploaded, the app will process each image and display the prediction results")
 
-    st.sidebar.title("Upload Images")
+    st.sidebar.markdown("<div class='custom-title'>Upload Images</div>", unsafe_allow_html=True)
     st.sidebar.write("Upload chest X-ray images to detect the presence of Tuberculosis.")
 
     # Display file uploader in the sidebar
