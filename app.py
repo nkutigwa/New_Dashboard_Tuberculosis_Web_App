@@ -106,9 +106,10 @@ st.markdown(
         font-family: "Verdana", sans-serif; /* Custom font */
         text-align: center;
     }
- 
-    .css-6qob1r {
-        background-color: #f5f5f5 !important;
+
+    /* Modify the header section background color */
+    .css-1629p8f {
+        background-color: #f5f5f5;
     }
 
     /* Dropzone styles */
