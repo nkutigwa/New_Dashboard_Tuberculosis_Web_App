@@ -6,25 +6,24 @@ from tensorflow.keras.preprocessing import image
 from PIL import Image
 import numpy as np
 import streamlit.components.v1 as components
+import pandas as pd
+import base64
+import os
+import pdfkit
 
-# Set page config
 st.set_page_config(page_title="Tuberculosis Detection Web App", layout="wide")
 
-# Load the pre-trained ResNet-50 model
 model = ResNet50(weights='imagenet')
 
-# Function to process the uploaded image
 def process_image(image):
-    # Preprocess the image
-    image = image.convert('RGB')  # Convert to RGB format
-    image = image.resize((224, 224))  # Resize to match the input shape of the model
+    image = image.convert('RGB') 
+    image = image.resize((224, 224))  
     img_array = np.array(image)
     img_array = preprocess_input(img_array)
     processed_image = tf.expand_dims(img_array, axis=0)
 
     return processed_image
 
-# Custom CSS styles
 st.markdown(
     """
     <style>
@@ -135,9 +134,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Streamlit app
 def main():
-    # Fixed header
     st.markdown(
         """
         <div class="fixed-header">
@@ -153,7 +150,6 @@ def main():
     st.sidebar.markdown("<div class='custom-title'>Upload Images</div>", unsafe_allow_html=True)
     st.sidebar.write("Upload chest X-ray images to detect the presence of Tuberculosis.")
 
-    # Display dropzone file uploader in the sidebar
     uploaded_files = st.sidebar.file_uploader(
         " ",
         type=["png", "jpg", "jpeg"],
@@ -161,43 +157,110 @@ def main():
         key="fileUploader",
     )
 
+    prediction_results = []
+
     if uploaded_files:
         for uploaded_file in uploaded_files:
-            # Read and process the uploaded image
             image = Image.open(uploaded_file)
             processed_image = process_image(image)
 
-            # Create two columns
             col1, col2 = st.columns([2, 1])
 
-            # Display the uploaded image in the first column
             col1.image(image, caption='Uploaded Image', use_column_width=True, width=250)
 
-            # Make predictions
             predictions = model.predict(processed_image)
             decoded_predictions = tf.keras.applications.resnet50.decode_predictions(predictions, top=1)[0]
             predicted_label = decoded_predictions[0][1]
             probability = decoded_predictions[0][2]
 
-            # Calculate complement of Tuberculosis percentage
             normal_percentage = 100 - (probability * 100)
 
-            # Display the result in the second column with center alignment
+            img_str = uploaded_file.getvalue()
+            img_base64 = base64.b64encode(img_str).decode()
+
+            prediction_results.append({
+                'Image': img_base64,
+                'Tuberculosis Percentage': round(probability * 100, 2),
+                'Normal Percentage': round(100 - (probability * 100), 2)
+            })
+
             with col2:
                 st.markdown("<div class='center-align'>Prediction Results:</div>", unsafe_allow_html=True)
                 st.markdown("<div class='center-align'>Tuberculosis Percentage: {0}%</div>".format(round(probability * 100, 2)), unsafe_allow_html=True)
-                st.markdown("<div class='center-align'>Normal Percentage: {0}%</div>".format(round(normal_percentage, 2)), unsafe_allow_html=True)
+                st.markdown("<div class='center-align'>Normal Percentage: {0}%</div>".format(round(100 - (probability * 100), 2)), unsafe_allow_html=True)
 
-    # Fixed footer
+
+    if st.button('Export Data'):
+        if len(prediction_results) > 0:
+            df = pd.DataFrame(prediction_results)
+
+            generate_pdf_report(df)
+
+    st.markdown("<div class='fixed-footer'>Developed by team of data scientist from CoICT, UDSM.</div>", unsafe_allow_html=True)
+
+def generate_pdf_report(df):
+    report_html = """
+    <html>
+    <head>
+        <style>
+            h2 {
+                text-align: center;
+                color: #FF3366;
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            th, td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Tuberculosis Detection Report</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Tuberculosis Percentage</th>
+                    <th>Normal Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
+
+    for _, row in df.iterrows():
+        report_html += "<tr>"
+        report_html += "<td><img src='data:image/png;base64,{0}' width='200px'></td>".format(row['Image'])
+        report_html += "<td>{0}%</td>".format(row['Tuberculosis Percentage'])
+        report_html += "<td>{0}%</td>".format(row['Normal Percentage'])
+        report_html += "</tr>"
+
+    report_html += """
+            </tbody>
+        </table>
+    </body>
+    </html>
+    """
+
+    with open("report.html", "w") as file:
+        file.write(report_html)
+
+    pdfkit.from_file("report.html", "report.pdf")
+
+    with open("report.pdf", "rb") as file:
+        b64_pdf = base64.b64encode(file.read()).decode()
+
     st.markdown(
-        """
-        <div class="fixed-footer">
-        <p>App designed by a team of data scientists from the College of Coict, UDSM.</p>
-        </div>
-        """,
+        f'<a href="data:application/pdf;base64,{b64_pdf}" download="report.pdf">Download Report</a>',
         unsafe_allow_html=True
     )
-
 
 if __name__ == '__main__':
     main()
