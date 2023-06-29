@@ -146,6 +146,49 @@ def main():
 
     st.write("Welcome to the Tuberculosis Detection web app. This app allows you to upload chest X-ray images and predicts the presence of Tuberculosis using a deep learning model.")
     st.write("Simply drag and drop or click to upload images in PNG, JPG, or JPEG format. Once the images are uploaded, the app will process each image and display the prediction results.")
+    
+    st.write("##### What is Tuberculosis?")
+    st.write("Tuberculosis is a contagious bacterial infection that primarily affects the lungs. It is caused by the bacteria Mycobacterium tuberculosis.")
+     
+    st.write("##### Why is early detection of Tuberculosis crucial?")
+    st.write("Early detection of Tuberculosis is crucial for the following reasons:")
+    st.write("- **Effective treatment**: Early detection allows for timely initiation of treatment, which improves the chances of successful recovery.")
+    st.write("- **Prevention of transmission**: Detecting and treating Tuberculosis early helps prevent the spread of the infection to others.")
+    st.write("- **Reduced complications**: Early intervention reduces the risk of developing severe complications associated with Tuberculosis, such as organ damage or dissemination of the infection to other parts of the body.")
+    st.write("- **Improved outcomes**: Timely detection and treatment increase the likelihood of a positive treatment outcome and minimize the impact of Tuberculosis on an individual's health and well-being.") 
+    
+    st.write("##### What are the causes of Tuberculosis?")
+    st.write("Tuberculosis is primarily caused by inhaling air droplets containing the bacteria Mycobacterium tuberculosis. It can be spread when an infected person coughs, sneezes, or talks, releasing the bacteria into the air.")
+
+    st.write("##### What are the symptoms of Tuberculosis?")
+    st.write("Common symptoms of Tuberculosis include:")
+    st.write ("- persistent coughing")
+    st.write ("- chest pain ")
+    st.write ("- coughing up blood") 
+    st.write ("- fatigue, weight loss")
+    st.write ("- fever")
+    st.write ("- night sweats.")
+
+    st.write("##### What are the preventive measures to be taken?")
+    st.write("To prevent Tuberculosis, it is recommended to:")
+    st.write("- Get vaccinated with the Bacillus Calmette-Guérin (BCG) vaccine.")
+    st.write("- Maintain good ventilation and air circulation in living spaces.")
+    st.write("- Practice good respiratory hygiene, such as covering the mouth and nose when coughing or sneezing.")
+    st.write("- Avoid close contact with individuals who have active Tuberculosis.")
+
+    st.write("##### Tips for someone suffering from Tuberculosis")
+    st.write("If you are diagnosed with Tuberculosis, consider the following tips:")
+    st.write("- Take the prescribed medication regularly and complete the full course of treatment.")
+    st.write("- Follow the healthcare provider's instructions regarding respiratory hygiene and infection control.")
+    st.write("- Maintain a healthy lifestyle, including a balanced diet, regular exercise, and adequate rest.")
+    st.write("- Seek support from healthcare professionals, family, and friends to manage the condition effectively.")
+
+    st.write("##### Educational Resources")
+    st.write("If you want to learn more about Tuberculosis, here are some educational resources you can explore:")
+    st.write("- [World Health Organization (WHO) - Tuberculosis](https://www.who.int/health-topics/tuberculosis)")
+    st.write("- [Centers for Disease Control and Prevention (CDC) - Tuberculosis](https://www.cdc.gov/tb/index.html)")
+    st.write("- [Mayo Clinic - Tuberculosis](https://www.mayoclinic.org/diseases-conditions/tuberculosis/symptoms-causes/syc-20351250)")
+
 
     st.sidebar.markdown("<div class='custom-title'>Upload Images</div>", unsafe_allow_html=True)
     st.sidebar.write("Upload chest X-ray images to detect the presence of Tuberculosis.")
