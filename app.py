@@ -32,24 +32,24 @@ def save_user_credentials(credentials):
         json.dump(credentials, f)
 
 def sign_up():
-    st.markdown("<div class='custom-title'>Sign Up</div>", unsafe_allow_html=True)
-    with st.form("sign_up_form"):
+    st.sidebar.markdown("<div class='custom-title'>Sign Up</div>", unsafe_allow_html=True)
+    with st.sidebar.form("sign_up_form"):
         username = st.text_input("Username", key="sign_up_username")
         password = st.text_input("Password", type="password", key="sign_up_password")
         sign_up_button_clicked = st.form_submit_button("sig Up")
 
     if sign_up_button_clicked:
         if username == "":
-            st.error("Please enter a username.")
+            st.sidebar.error("Please enter a username.")
         elif password =="":
-            st.error("Please enter a password.")
+            st.sidebar.error("Please enter a password.")
         else:
             if username in user_credentials:
-                st.error("Username alredy exists. Please choose a different username.")
+                st.sidebar.error("Username alredy exists. Please choose a different username.")
             else:
                 user_credentials[username] = password
                 save_user_credentials(user_credentials)
-                st.success("sign up successful. Please log in.")
+                st.sidebar.success("sign up successful. Please log in.")
                 return True
             
     
@@ -57,22 +57,22 @@ def sign_up():
     
 
 def log_in():
-    st.markdown("<div class='custom-title'>Log In</div>", unsafe_allow_html=True)
-    with st.form("log_in_form"):
+    st.sidebar.markdown("<div class='custom-title'>Log In</div>", unsafe_allow_html=True)
+    with st.sidebar.form("log_in_form"):
         username = st.text_input("Username", key="log_in_username")
         password = st.text_input("Password", type="password", key="log_in_password")
         log_in_button_clicked = st.form_submit_button("Log In")
 
     if log_in_button_clicked:
         if username == "":
-            st.error("Please enter a username.")
+            st.sidebar.error("Please enter a username.")
         elif password == "":
-            st.error("Please enter a password.")
+            st.sidebar.error("Please enter a password.")
         elif username in user_credentials and user_credentials[username] == password:
-            st.success("Log in successful!")
+            st.sidebar.success("Log in successful!")
             return True
         else:
-            st.error("Invalid username or password.")
+            st.sidebar.error("Invalid username or password.")
   
         
 
@@ -274,6 +274,10 @@ def main():
         unsafe_allow_html=True
     )
 
+     
+    default_image = "assets/tb3png"  
+    st.image(default_image, use_column_width=True)
+
     is_logged_in = False
 
     if "is_logged_in" not in st.session_state:
@@ -283,16 +287,49 @@ def main():
 
     with col1:
         if not st.session_state.is_logged_in:
-            sign_up()
+            st.sidebar.markdown("<div class='custom-title'>Sign Up</div>", unsafe_allow_html=True)
+            with st.sidebar.form("sign_up_form"):
+                username = st.text_input("Username", key="sign_up_username")
+                password = st.text_input("Password", type="password", key="sign_up_password")
+                sign_up_button_clicked = st.form_submit_button("Sign Up")
+
+            if sign_up_button_clicked:
+                if username == "":
+                    st.sidebar.error("Please enter a username.")
+                elif password == "":
+                    st.sidebar.error("Please enter a password.")
+                else:
+                    if username in user_credentials:
+                        st.sidebar.error("Username already exists. Please choose a different username.")
+                    else:
+                        user_credentials[username] = password
+                        save_user_credentials(user_credentials)
+                        st.sidebar.success("Sign up successful. Please log in.")
+        
         else:
-            st.markdown("<div class='custom-title'>Logged In</div>", unsafe_allow_html=True)
-            st.write(f"Welcome, {st.session_state.logged_in_user}!")
-            if st.button("Logout"):
+            st.sidebar.markdown("<div class='custom-title'>Logged In</div>", unsafe_allow_html=True)
+            st.sidebar.write(f"Welcome, {st.session_state.logged_in_user}!")
+            if st.sidebar.button("Logout"):
                 st.session_state.is_logged_in = False
                 st.session_state.logged_in_user = None
+
     with col2:
         if not st.session_state.is_logged_in:
-            log_in()
+            st.sidebar.markdown("<div class='custom-title'>Log In</div>", unsafe_allow_html=True)
+            with st.sidebar.form("log_in_form"):
+                username = st.text_input("Username", key="log_in_username")
+                password = st.text_input("Password", type="password", key="log_in_password")
+                log_in_button_clicked = st.form_submit_button("Log In")
+
+            if log_in_button_clicked:
+                if username == "":
+                    st.sidebar.error("Please enter a username.")
+                elif password == "":
+                    st.sidebar.error("Please enter a password.")
+                elif username in user_credentials and user_credentials[username] == password:
+                    st.session_state.is_logged_in = True
+                    st.session_state.logged_in_user = username
+                    st.sidebar.success("Log in successful!")
 
 
     
