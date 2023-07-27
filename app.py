@@ -19,7 +19,11 @@ import folium
 
 tb_cases_by_region = {}
 user_credentials = {}
+tb_map = None
 
+
+if "show_demographic_content" not in st.session_state:
+    st.session_state.show_demographic_content = False
 
 def load_user_credentials():
     if os.path.exists("user_credentials.json"):
@@ -252,10 +256,85 @@ st.markdown(
 )
 
 
-show_demographic_content = False
+
+def generate_pdf_report(df):
+    if df is None or df.empty:
+        st.write("No prediction results to export.")
+        return
+
+    report_html = """
+    <html>
+    <head>
+    <style>
+        h2 {
+            text-align: center;
+            color: #FF3366;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+    </head>
+    <body>
+    <h2>Tuberculosis Detection Report</h2>
+    <table>
+    <thead>
+    <tr>
+    <th>Image</th>
+    <th>Tuberculosis Percentage</th>
+    <th>Normal Percentage</th>
+    <th>Filename</th>
+    </tr>
+    </thead>
+    <tbody>
+    """
+
+    for _, row in df.iterrows():
+        report_html += "<tr>"
+        report_html += f"<td><img src='data:image/png;base64,{row['Image']}' width='200px'></td>"
+        report_html += f"<td>{row['Tuberculosis Percentage']}%</td>"
+        report_html += f"<td>{row['Normal Percentage']}%</td>"
+        report_html += f"<td>{row['Filename']}</td>"
+        report_html += "</tr>"
+
+    report_html += """
+    </tbody>
+    </table>
+    </body>
+    </html>
+    """
+
+    with open("report.html", "w") as file:
+        file.write(report_html)
+
+    pdfkit.from_file("report.html", "report.pdf")
+
+    with open("report.pdf", "rb") as file:
+        b64_pdf = base64.b64encode(file.read()).decode()
+
+    st.markdown(
+        f'<a href="data:application/pdf;base64,{b64_pdf}" download="report.pdf">Download Report</a>',
+        unsafe_allow_html=True
+    )
+
+
 
 
 def main():
+    
+    global show_demographic_content
+    global tb_map
+
     prediction_results = []
 
     df = pd.DataFrame()
@@ -263,6 +342,12 @@ def main():
 
     global user_credentials
     user_credentials = load_user_credentials()
+
+    # Function to toggle demographic content
+    def toggle_demographic_content():
+        st.session_state.show_demographic_content = not st.session_state.show_demographic_content
+
+
     
 
     st.markdown(
@@ -275,7 +360,7 @@ def main():
     )
 
      
-    default_image = "assets/tb3png"  
+    default_image = "assets/tb.jpg"  
     st.image(default_image, use_column_width=True)
 
     is_logged_in = False
@@ -329,15 +414,22 @@ def main():
                 elif username in user_credentials and user_credentials[username] == password:
                     st.session_state.is_logged_in = True
                     st.session_state.logged_in_user = username
+                    st.session_state.show_demographic_content = False
+
                     st.sidebar.success("Log in successful!")
+
 
 
     
     if st.session_state.is_logged_in:
         st.write("Welcome to the Tuberculosis Detection web app. This app allows you to upload chest X-ray images and predicts the presence of Tuberculosis using a deep learning model.")
-        st.write("Simply drag and drop or click to upload images in PNG, JPG, or JPEG format. Once the images are uploaded, the app will process each image and display the prediction results.")
-    
+        st.write("Simply fill in the demographic details and then drag and drop or click to upload images in PNG, JPG, or JPEG format. Once the images are uploaded, the app will process each image and display the prediction results.")
 
+        # Demographic input fields
+        st.sidebar.markdown("<div class='custom-title'>Demographic Details</div>", unsafe_allow_html=True)
+        gender = st.sidebar.selectbox("Select Gender", ["Male", "Female", "Other"])
+        age = st.sidebar.slider("Select Age", 1, 100, 30)
+        location = st.sidebar.text_input("Enter Location")
 
         st.sidebar.markdown("<div class='custom-title'>Upload Images</div>", unsafe_allow_html=True)
         st.sidebar.write("Upload chest X-ray images to detect the presence of Tuberculosis.")
@@ -370,52 +462,55 @@ def main():
                     img_str = uploaded_file.getvalue()
                     img_base64 = base64.b64encode(img_str).decode()
 
+
+
                     prediction_results.append({
                         'Image': img_base64,
                         'Filename': uploaded_file.name,
                         'Tuberculosis Percentage': round(probability * 100, 2),
                         'Normal Percentage': round(100 - (probability * 100), 2)
                          })
+                         
         
-
+                    
                     with col2:
                         st.markdown("<div class='center-align'>Prediction Results:</div>", unsafe_allow_html=True)
                         st.markdown("<div class='center-align'>Tuberculosis Percentage: {0}%</div>".format(round(probability * 100, 2)), unsafe_allow_html=True)
                         st.markdown("<div class='center-align'>Normal Percentage: {0}%</div>".format(round(100 - (probability * 100), 2)), unsafe_allow_html=True)
 
-                    if st.button(f'Export Data {i}'):
-                        if len(prediction_results) > 0:
-                            df = pd.DataFrame(prediction_results)
-                            generate_pdf_report(df)
-                        else:
-                            st.write("No prediction results to export.")
 
-                    # Record TB cases by region and date
-                    date_today = datetime.today().strftime('%Y-%m-%d')
-                    record_tb_cases(region='Dar es Salaam', date=date_today)
+        # Only show "Show Demographic Content" checkbox if the user is logged in
+        if st.session_state.logged_in_user:
+            show_demographic_content = st.sidebar.checkbox("Show Demographic Content", key="show_demographic_content", value=st.session_state.show_demographic_content, on_change=toggle_demographic_content)
+            
+        
+        if st.session_state.show_demographic_content:
+            # Load the map and add markers for each region with TB cases
+            tb_map = folium.Map(location=[-6.369028, 34.888822], zoom_start=6)  # Adjust the center and zoom level accordingly
 
-    
-        st.sidebar.write("**Geographical Distribution of TB Cases**")
-        if show_demographic_content:
+            for region, cases in tb_cases_by_region.items():
+                folium.Marker(
+                    location=get_region_coordinates(region),
+                    popup=f"Region: {region}\nCases: {cases}",
+                    icon=folium.Icon(color='red', icon='info-sign')
+                ).add_to(tb_map)
 
-            if st.sidebar.button("Show Map", key="tb_info_key"):
-                # Load the map and add markers for each region with TB cases
-                tb_map = folium.Map(location=[-6.369028, 34.888822], zoom_start=6)  # Adjust the center and zoom level accordingly
+            if tb_map is not None:
+                folium_static(tb_map)
 
-                for region, cases in tb_cases_by_region.items():
-                    folium.Marker(
-                        location=get_region_coordinates(region),  # Define a function to get the coordinates for each region
-                        popup=f"Region: {region}\nCases: {cases}",
-                        icon=folium.Icon(color='red', icon='info-sign')
-                        ).add_to(tb_map)
+        # Export functionality
+        if st.button(f'Export Data'):
+            if len(prediction_results) > 0:
+                df = pd.DataFrame(prediction_results)
+                generate_pdf_report(df)
+            else:
+                st.write("No prediction results to export.")    
 
-                    folium_static(tb_map)
+         # Record TB cases by region and date
+        date_today = datetime.today().strftime('%Y-%m-%d')
+        record_tb_cases(region='Dar es Salaam', date=date_today)
 
-    
         st.sidebar.write("**More TB resources.**")
-
-
-
         if st.sidebar.button('Tuberculosis Information', key='tb_info_button', help='Tuberculosis Information'):
                 with st.expander("Tuberculosis Information"):
                     st.write("##### What is Tuberculosis?")
@@ -468,84 +563,6 @@ def main():
 
         st.markdown("<div class='fixed-footer'>Developed by team of data scientist from CoICT, UDSM.</div>", unsafe_allow_html=True)
 
-        def generate_pdf_report(df):
-                if df is None or df.empty:
-                    st.write("No prediction results to export.")
-                    return
-                report_html = """
-                <html>
-                <head>
-                <style>
-                    h2 {
-                        text-align: center;
-                        color: #FF3366;
-                        }
-                    table {
-                        border-collapse: collapse;
-                        width: 100%;
-                        margin-bottom: 20px;
-                        }
-                    th, td {
-                        border: 1px solid #ddd;
-                        padding: 8px;
-                        text-align: left;
-                        }
-                        th {
-                        background-color: #f2f2f2;
-                            }
-                        </style>
-                        </head>
-                        <body>
-                        <h2>Tuberculosis Detection Report</h2>
-                        <table>
-                        <thead>
-                        <tr>
-                        <th>Image</th>
-                        <th>Tuberculosis Percentage</th>
-                        <th>Normal Percentage</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                           """
-
-    # for _, row in df.iterrows():
-    #     report_html += "<tr>"
-    #     report_html += "<td><img src='data:image/png;base64,{0}' width='200px'></td>".format(row['Image'])
-    #     report_html += "<td>{0}</td>".format(row['Filename'])
-    #     report_html += "<td>{0}%</td>".format(row['Tuberculosis Percentage'])
-    #     report_html += "<td>{0}%</td>".format(row['Normal Percentage'])
-    #     report_html += "</tr>
-        for _, row in df.iterrows():
-                report_html += "<tr>"
-                report_html += "<td><img src='data:image/png;base64,{0}' width='200px'></td>".format(row['Image'])
-                report_html += "<td>{0}%</td>".format(row['Tuberculosis Percentage'])
-                report_html += "<td>{0}%</td>".format(row['Normal Percentage'])
-                report_html += "</tr>"
-                report_html += "<tr>"
-                report_html += "<td><strong>Filename:</strong> {0}</td>".format(row['Filename'])
-                report_html += "<td colspan='2'></td>"
-                report_html += "</tr>"
-
-
-                report_html += """
-                </tbody>
-                </table>
-                 </body>
-                 </html>
-            """
-
-                with open("report.html", "w") as file:
-                    file.write(report_html)
-
-                pdfkit.from_file("report.html", "report.pdf")
-
-                with open("report.pdf", "rb") as file:
-                    b64_pdf = base64.b64encode(file.read()).decode()
-
-                st.markdown(
-                f'<a href="data:application/pdf;base64,{b64_pdf}" download="report.pdf">Download Report</a>',
-                unsafe_allow_html=True
-                     )
-
+        
 if __name__ == '__main__':
     main()
